@@ -3,5 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="WinApi_2/WinApi_2.vcxproj" />
+  <Project Path="ComboBox/ComboBox.vcxproj" Id="9581abe3-0caf-445e-a413-265da7a75fc6" />
+  <Project Path="WinApi_2/WinApi_2.vcxproj" Id="cf9e55ba-a1bc-435e-8863-2e48514795d0" />
 </Solution>
