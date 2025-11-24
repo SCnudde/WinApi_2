@@ -33,6 +33,8 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_COMMAND:
 	{
+
+
 		switch (LOWORD(wParam))
 		{
 		case IDOK:	
