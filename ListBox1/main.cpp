@@ -4,12 +4,14 @@
 #include "resource.h"
 
 CONST CHAR* g_sz_VALUES[] = { "Option_1","Option_2","Option_3","Option_4","Option_5" };
+CONST CHAR g_sz_FILENAME[] = "list.txt";
+
 
 BOOL CALLBACK DlgProcAdd(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProcEdit(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);//Процедура окна
 VOID SaveList(HWND hwnd, CONST CHAR filename[]);
-
+VOID LoadList(HWND hwnd, CONST CHAR filename[]);
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, INT nCmdShow)
 {
@@ -33,13 +35,14 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		//Мы Вас да
 	case WM_INITDIALOG:
 	{
-		AllocConsole();
-		freopen("CONOUT$", "w", stdout);
+		/*
 		HWND hListBox = GetDlgItem(hwnd, IDC_LIST1);
 		for (int i = 0; i < sizeof(g_sz_VALUES) / sizeof(g_sz_VALUES[0]); i++)
 		{
 			SendMessage(hListBox, LB_ADDSTRING, 0, (LPARAM)g_sz_VALUES[i]);
-		}
+		}*/
+		LoadList(hwnd, g_sz_FILENAME);
+
 	}
 	break;
 	case WM_COMMAND:
@@ -67,12 +70,12 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 		case IDOK:
-			SaveList(hwnd, "list.txt");
+			SaveList(hwnd, g_sz_FILENAME);
 			EndDialog(hwnd, 0);
 			break;
 
 		case IDCANCEL:
-			SaveList(hwnd, "list.txt");
+			SaveList(hwnd, g_sz_FILENAME);
 			EndDialog(hwnd, 0);
 			break;
 		}
@@ -221,7 +224,35 @@ VOID SaveList(HWND hwnd, CONST CHAR filename[])
 	
 	DWORD dwBytesWritten = 0;
 	WriteFile(hFile, sz_buffer, strlen(sz_buffer) + 1, &dwBytesWritten, NULL);
+	CloseHandle(hFile);	
+}
+
+VOID LoadList(HWND hwnd, CONST CHAR filename[])
+{
+	HANDLE hFile = CreateFile
+	(
+		filename,
+		GENERIC_READ,
+		0,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+	DWORD dwError = GetLastError();
+	if (dwError == ERROR_FILE_NOT_FOUND) return;
+
+	CONST INT SIZE = 32768;
+	CHAR sz_buffer[SIZE] = {};
+	DWORD dwByteRead = 0;
+
+	ReadFile(hFile, sz_buffer, SIZE, &dwByteRead, NULL);
+	HWND hList = GetDlgItem(hwnd, IDC_LIST1);
+
+	for (char* pch = strtok(sz_buffer, "\n"); pch; pch = strtok(NULL, "\n"))
+		SendMessage(hList, LB_ADDSTRING, 0, (LPARAM)pch);
+	
 	CloseHandle(hFile);
-	
-	
+
+
 }
