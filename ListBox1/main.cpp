@@ -1,11 +1,15 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
+#include<iostream>
 #include "resource.h"
 
 CONST CHAR* g_sz_VALUES[] = { "Option_1","Option_2","Option_3","Option_4","Option_5" };
 
 BOOL CALLBACK DlgProcAdd(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK DlgProcEdit(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DlgProcEdit(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);//Процедура окна
+VOID SaveList(HWND hwnd, CONST CHAR filename[]);
+
 
 INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, INT nCmdShow)
 {
@@ -18,14 +22,19 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {	
 	switch (uMsg)
 	{
-	case IDC_LIST1:
-	{
-		if (HIWORD(wParam) == LBN_DBLCLK)
-			DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG_ADD), hwnd, DlgProcEdit, 0);
-		break;
-	}
+	//case IDC_LIST1:
+	//{
+	//	//Возвращает "hInstance" нашей программы
+	//	if (HIWORD(wParam) == LBN_DBLCLK)
+	//		DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG_ADD), hwnd, DlgProcEdit, 0);
+	//	break;
+	//}
+		//Сереж, у Вас походу с Инетом проблема, потому что меня все слышат.
+		//Мы Вас да
 	case WM_INITDIALOG:
 	{
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
 		HWND hListBox = GetDlgItem(hwnd, IDC_LIST1);
 		for (int i = 0; i < sizeof(g_sz_VALUES) / sizeof(g_sz_VALUES[0]); i++)
 		{
@@ -58,14 +67,30 @@ BOOL CALLBACK DlgProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		break;
 
 		case IDOK:
+			SaveList(hwnd, "list.txt");
+			EndDialog(hwnd, 0);
 			break;
 
 		case IDCANCEL:
+			SaveList(hwnd, "list.txt");
 			EndDialog(hwnd, 0);
 			break;
 		}
 	}
 	break;
+
+	/*case WM_KEYUP:
+	{
+		switch (wParam)
+		{
+		case VK_RETURN:
+			HWND hList = GetDlgItem(hwnd, IDC_LIST1);
+			if (GetFocus()==hList)
+			{
+				DialogBoxParam(GetModuleHandle(NULL), MAKEINTRESOURCE(IDD_DIALOG_ADD), hwnd, DlgProcEdit, 0);
+			}
+		}
+	}	*/
 	case WM_CLOSE:
 		EndDialog(hwnd, 0);
 	}
@@ -122,15 +147,15 @@ BOOL CALLBACK DlgProcEdit(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_INITDIALOG:
 	{
-		SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)"Wijzigingen");
+		SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)"Wijzigingen");//изменили заголовок окна 
 		HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
 		HWND hParent = GetParent(hwnd);
 		HWND hList = GetDlgItem(hParent, IDC_LIST1);
-		INT i = SendMessage(hList, LB_GETCURSEL, 0, 0);
-		SendMessage(hList, LB_GETTEXT, i, (LPARAM)sz_buffer);
-		SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_buffer);
+		INT i = SendMessage(hList, LB_GETCURSEL, 0, 0);//получаем выбранную селекцию
+		SendMessage(hList, LB_GETTEXT, i, (LPARAM)sz_buffer);//вытаскиваем текст из выбранного элемента
+		SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_buffer);//загружаем выбранный элемент в "Edit" окно.
 		SetFocus(hEdit);
-		SendMessage(hEdit, EM_SETSEL, 256, -1);
+		SendMessage(hEdit, EM_SETSEL, 256, -1);//курсов в конце строки устанавливается
 	}
 	break;
 	case WM_COMMAND:
@@ -139,28 +164,64 @@ BOOL CALLBACK DlgProcEdit(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		{
 		case IDOK:
 		{
-			HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);
-			SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);
+			//после нажатие на ОК, изменения передаются в ListBox
+			HWND hEdit = GetDlgItem(hwnd, IDC_EDIT);//прочитываем текст
+			SendMessage(hEdit, WM_GETTEXT, SIZE, (LPARAM)sz_buffer);//забираем текст в буффер
 
 			HWND hParent = GetParent(hwnd);
 			HWND hList = GetDlgItem(hParent, IDC_LIST1);
-			INT i = SendMessage(hList, LB_GETCURSEL, 0, 0);
+			INT i = SendMessage(hList, LB_GETCURSEL, 0, 0);//Берем написанный текст
 			
-			if (SendMessage(hList, LB_FINDSTRINGEXACT, 0, (LPARAM)sz_buffer) == LB_ERR)
+			if (SendMessage(hList, LB_FINDSTRINGEXACT, 0, (LPARAM)sz_buffer) == LB_ERR)//делаем проверку. Элемент не добавляется, если он уже существует
 			{
-				SendMessage(hList, LB_DELETESTRING, i, NULL);
+				SendMessage(hList, LB_DELETESTRING, i, NULL);//удаляем прежний вариант элемента
 				SendMessage(hList, LB_ADDSTRING, i, (LPARAM)sz_buffer);
 			}
 		}
-
 			break;
 		case IDCANCEL:
+
 			EndDialog(hwnd, 0);
 		}
 	}
 		break;
 	case WM_CLOSE:
+		
 		EndDialog(hwnd, 0);
 	}
 	return FALSE;
+
+}
+
+VOID SaveList(HWND hwnd, CONST CHAR filename[])
+{
+	CONST INT SIZE = 32768;
+	CHAR sz_buffer[SIZE] = {};
+	HWND hList = GetDlgItem(hwnd, IDC_LIST1);
+	INT n = SendMessage(hList, LB_GETCOUNT, 0, 0);
+	std::cout << n << std::endl;
+	for (int i = 0; i < n; i++)
+	{
+		CHAR sz_item[256] = {};
+		SendMessage(hList, LB_GETTEXT, i, (LPARAM) sz_item);
+		strcat(sz_buffer, sz_item);
+		strcat(sz_buffer, "\n");		
+	}
+
+	HANDLE hFile = CreateFile
+	(
+		filename,
+		GENERIC_WRITE,
+		0,
+		NULL,
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+	
+	DWORD dwBytesWritten = 0;
+	WriteFile(hFile, sz_buffer, strlen(sz_buffer) + 1, &dwBytesWritten, NULL);
+	CloseHandle(hFile);
+	
+	
 }
