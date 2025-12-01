@@ -41,14 +41,14 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	}	
 	//2) Создание окна:
 
-	int width = 640; 
-	int height = 480; 
+	double width = 1024 *0.75; 
+	double height = 640 * 0.75;
 
-	int screenX = GetSystemMetrics(SM_CXSCREEN);
-	int screenY = GetSystemMetrics(SM_CYSCREEN);
+	double screenX = GetSystemMetrics(SM_CXSCREEN);
+	double screenY = GetSystemMetrics(SM_CYSCREEN);
 
-	int center_screen_X = (screenX - width) / 2;
-	int center_screen_Y = (screenY - height) / 2;
+	double center_screen_X = (screenX/2)- (width / 2);// (screenX - (width*0.75)) / 2;
+	double center_screen_Y = (screenY/2) -( height / 2);//		(screenY - (height*0.75)) / 2;
 
 
 	HWND hwnd = CreateWindowEx
@@ -56,7 +56,7 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 		NULL, //exStyle
 		g_sz_WINDOW_CLASS,//Имя класса окна
 		g_sz_WINDOW_CLASS,//Заголок окна
-		WS_OVERLAPPEDWINDOW | WS_VSCROLL,//Стиль окна, Стили всегда зависят от класса окна
+		WS_OVERLAPPEDWINDOW | WS_VSCROLL|WS_SYSMENU,//Стиль окна, Стили всегда зависят от класса окна
 		//CW_USEDEFAULT,CW_USEDEFAULT, //Позиция
 		center_screen_X, center_screen_Y,
 		width, height, //Размер окна
