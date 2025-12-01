@@ -41,14 +41,25 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 	}	
 	//2) Создание окна:
 
+	int width = 640; 
+	int height = 480; 
+
+	int screenX = GetSystemMetrics(SM_CXSCREEN);
+	int screenY = GetSystemMetrics(SM_CYSCREEN);
+
+	int center_screen_X = (screenX - width) / 2;
+	int center_screen_Y = (screenY - height) / 2;
+
+
 	HWND hwnd = CreateWindowEx
 	(
 		NULL, //exStyle
 		g_sz_WINDOW_CLASS,//Имя класса окна
 		g_sz_WINDOW_CLASS,//Заголок окна
 		WS_OVERLAPPEDWINDOW | WS_VSCROLL,//Стиль окна, Стили всегда зависят от класса окна
-		CW_USEDEFAULT,CW_USEDEFAULT, //Позиция
-		640,480, //Размер окна
+		//CW_USEDEFAULT,CW_USEDEFAULT, //Позиция
+		center_screen_X, center_screen_Y,
+		width, height, //Размер окна
 		NULL,
 		NULL, //Для главного окна это ResourceID главного меню,
 				//для дочернего окна (Control) -ResourceID дочернего окна (IDC_BUTTON_COPY)
