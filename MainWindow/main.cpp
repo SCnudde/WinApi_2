@@ -1,5 +1,9 @@
 #include <Windows.h>
 #include "resource.h"
+#include <cstdio>
+
+#define IDC_BUTTON  1000
+
 
 CONST CHAR g_sz_WINDOW_CLASS[] = "Mijn eerste venster";
 CONST CHAR mainMessage[] = "Mijn eerste tekst";
@@ -110,9 +114,55 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		DrawText(hDC, mainMessage, -1, &rect, DT_SINGLELINE | DT_CENTER | DT_VCENTER); // рисуем текст
 		EndPaint(hwnd, &ps); // заканчиваем рисовать
 		break;
+	case WM_MOVE:
+	{}
+		break;
+	case WM_SIZE:
+	{
+		RECT window_rect = {};
+		GetWindowRect(hwnd, &window_rect);
+		CONST INT SIZE = 256;
+		CHAR sz_title[SIZE] = {};
+		wsprintf(
+			sz_title,
+			"%s, Position: %ix%i, Size: %ix%i",
+			g_sz_WINDOW_CLASS,
+			window_rect.left, window_rect.top,
+			window_rect.right - window_rect.left,
+			window_rect.bottom - window_rect.top
+		);
+		SendMessage(hwnd, WM_SETTEXT, 0, (LPARAM)sz_title);
+
+	}
+		break;
+
 	case WM_CREATE:
+	{
+		HWND hButton = CreateWindowEx
+		(
+			NULL, //exstyle
+			"BUTTON",//Class
+			"Нажми меня",//Title
+			WS_CHILD | WS_VISIBLE,//Style
+			10, 10,//Position
+			100, 50,//Size
+			hwnd,//Parent
+			(HMENU)IDC_BUTTON,//Для главного окна - это ResourceID главного меню.
+						//Для дочернего окна (элементы уаправления главного окна) - это ResourceID дочернего элемента.
+			GetModuleHandle(NULL),//hInstance
+			NULL//???
+		);
+	}	
 		break;
 	case WM_COMMAND:
+	{
+		switch (LOWORD(wParam))
+		{
+		case IDC_BUTTON:
+			MessageBox(hwnd, "Cursor checK", "Info", MB_OK | MB_ICONINFORMATION);
+			break;
+		}
+	}
 		break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
