@@ -238,6 +238,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	
 	break;
+
+	case WM_CTLCOLOREDIT:
+	{
+		HDC hdc = (HDC)wParam; //с сообщением WM_CTLCOLOREDIT в wParam принимается HWND элемента EditControl
+		SetBkMode(hdc, TRANSPARENT);
+		SetBkColor(hdc, RGB(0, 0, 100));
+		HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 150));
+		SetTextColor(hdc, RGB(255, 0, 0));
+		SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush);
+		SendMessage(hwnd, WM_ERASEBKGND, wParam, 0);
+		return (LRESULT)hBrush;
+	}
+
 	case WM_COMMAND:
 	{
 		static DOUBLE a = DBL_MIN, b = DBL_MIN;	//Операнды
