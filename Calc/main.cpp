@@ -3,6 +3,9 @@
 #include<iostream>
 #include"resource.h"
 
+HBRUSH hBrush;
+COLORREF g_clrBkg(GetSysColor(COLOR_BTNFACE));
+
 CONST CHAR g_sz_WINDOW_CLASS[] = "Calc PV_521";
 
 CONST INT g_i_BUTTON_SIZE = 50;
@@ -10,7 +13,9 @@ CONST INT g_i_INTERVAL = 2;
 CONST INT g_i_DISPLAY_INTERVAL = 10;
 CONST INT g_i_DOUBLE_BUTTON_SIZE = g_i_BUTTON_SIZE * 2 + g_i_INTERVAL;
 CONST INT g_i_DISPLAY_WIDTH = g_i_BUTTON_SIZE * 5 + g_i_INTERVAL * 4;
-CONST INT g_i_DISPLAY_HEIGHT = 35;
+CONST INT g_i_DISPLAY_HEIGHT = g_i_BUTTON_SIZE;
+CONST INT g_i_FONT_HEIGHT = g_i_DISPLAY_HEIGHT - 2;
+CONST INT g_i_FONT_WIDTH = g_i_FONT_HEIGHT /2.5;
 CONST INT g_i_START_X = 10;
 CONST INT g_i_START_Y = 10;
 CONST INT g_i_BUTTON_START_X = g_i_START_X;
@@ -94,9 +99,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 	case WM_CREATE:
 	{
+
 		//AllocConsole();//открывает консоль
 		freopen("CONOUT$", "w", stdout);// Чтоб cout работал
-		CreateWindowEx
+		HWND hEdit = CreateWindowEx
 		(
 			NULL,
 			"Edit",
@@ -109,6 +115,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetModuleHandle(NULL),	//hInstance
 			NULL
 		);
+		AddFontResourceEx("Fonts\\digital-7.ttf", FR_PRIVATE, 0);
+		HFONT hFont = CreateFont
+		(
+			g_i_FONT_HEIGHT, g_i_FONT_WIDTH,
+			0, 0,
+			FW_BOLD,
+			FALSE,
+			FALSE,
+			FALSE,
+			DEFAULT_CHARSET,
+			OUT_TT_PRECIS,
+			CLIP_TT_ALWAYS,
+			ANTIALIASED_QUALITY,
+			FF_DONTCARE,
+			"Digital-7"
+
+		);
+
+		SendMessage(hEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
 
 		CHAR sz_button[2] = {};
 		for (int i = 6; i >= 0; i -= 3)
@@ -158,6 +183,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			GetModuleHandle(NULL),
 			NULL
 		);
+		
+
 		CHAR sz_operation[2] = "";
 		for (int i = 0; i < 4; i++)
 		{
@@ -308,6 +335,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			sprintf(sz_buffer, "%g", a);
 			SendMessage(hEdit, WM_SETTEXT, 0, (LPARAM)sz_buffer);
 		}
+
+		if (LOWORD(wParam) == IDM_SQUARE_BLUE) 
+{
+			PAINTSTRUCT ps;
+			CreateSolidBrush(RGB(135, 206, 235));
+			HDC hdc = BeginPaint(hwnd, &ps);
+			
+			SetBkColor(hdc, BLACK_BRUSH);
+			
+			EndPaint(hwnd, &ps);
+		}
+
 	}
 	break;
 	case WM_KEYDOWN:
@@ -402,6 +441,57 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+
+	case WM_CONTEXTMENU:
+	{
+		HMENU cmMain = CreatePopupMenu();
+		AppendMenu
+		(
+			cmMain,
+			MF_STRING,
+			IDM_SQUARE_BLUE,			
+			"square_blue"
+		);
+		AppendMenu
+		(
+			cmMain,
+			MF_STRING,
+			IDM_METAL_MISTRAL,
+			"Metal Mistral"
+		);		
+		AppendMenu
+		(
+			cmMain,
+			MF_STRING,
+			IDM_EXIT,
+			"Exit"
+		);
+		BOOL selected_item = TrackPopupMenuEx
+		(
+			cmMain,
+			TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+			LOWORD(lParam),HIWORD(lParam),
+			hwnd,
+			NULL
+		);
+
+		switch (selected_item)
+		{
+			
+
+		case IDM_SQUARE_BLUE: 
+			SetSkin(hwnd, "square_blue");
+			//HBRUSH greenBrush = CreateSolidBrush(RGB(0, 255, 0));
+			//hBrush = appCreateColor(appChooseColor(hцnd, g_clrBkg));
+			//wClass.hbrBackground = = CreateSolidBrush(0x000000FF);
+			break;
+		case IDM_METAL_MISTRAL: SetSkin(hwnd, "metal_mistral"); break;
+		case IDM_EXIT: SendMessage(hwnd, WM_CLOSE, 0, 0); break;
+		}
+		
+		DestroyMenu(cmMain);
+	}
+	break;
 	case WM_DESTROY:
 		FreeConsole();
 		PostQuitMessage(0);
@@ -420,7 +510,7 @@ VOID SetSkin(HWND hwnd, CONST CHAR skin[])
 	for (int i = 0; i < 10; i++)
 	{
 		sprintf(sz_filename, "ButtonsBMP\\%s\\button_%i.bmp", skin,i);
-		HWND hButton = GetDlgItem(hwnd, IDC_BUTTON_0 + 1);
+		HWND hButton = GetDlgItem(hwnd, IDC_BUTTON_0 + i);
 		HBITMAP bmpButton = (HBITMAP)LoadImage
 			(
 				GetModuleHandle(NULL),
