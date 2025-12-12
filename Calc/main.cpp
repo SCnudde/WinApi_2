@@ -2,32 +2,9 @@
 #include<Windows.h>
 #include<iostream>
 #include"resource.h"
+#include"dimensions.h"
+#include"colors_and_skins.h"
 
-HBRUSH hBrush;
-COLORREF g_clrBkg(GetSysColor(COLOR_BTNFACE));
-
-CONST CHAR g_sz_WINDOW_CLASS[] = "Calc PV_521";
-
-CONST INT g_i_BUTTON_SIZE = 50;
-CONST INT g_i_INTERVAL = 2;
-CONST INT g_i_DISPLAY_INTERVAL = 10;
-CONST INT g_i_DOUBLE_BUTTON_SIZE = g_i_BUTTON_SIZE * 2 + g_i_INTERVAL;
-CONST INT g_i_DISPLAY_WIDTH = g_i_BUTTON_SIZE * 5 + g_i_INTERVAL * 4;
-CONST INT g_i_DISPLAY_HEIGHT = g_i_BUTTON_SIZE;
-CONST INT g_i_FONT_HEIGHT = g_i_DISPLAY_HEIGHT - 2;
-CONST INT g_i_FONT_WIDTH = g_i_FONT_HEIGHT /2.5;
-CONST INT g_i_START_X = 10;
-CONST INT g_i_START_Y = 10;
-CONST INT g_i_BUTTON_START_X = g_i_START_X;
-CONST INT g_i_BUTTON_START_Y = g_i_START_Y + g_i_DISPLAY_HEIGHT + g_i_INTERVAL;
-
-CONST INT g_i_WINDOW_WIDTH = g_i_DISPLAY_WIDTH + g_i_START_X * 2 + 16;
-CONST INT g_i_WINDOW_HEIGHT = g_i_DISPLAY_HEIGHT + g_i_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * 4 + 48;
-
-#define X_BUTTON_POSITION(position)	g_i_BUTTON_START_X + (g_i_BUTTON_SIZE + g_i_INTERVAL) * (position)
-#define Y_BUTTON_POSITION(position)	g_i_BUTTON_START_Y + (g_i_BUTTON_SIZE + g_i_INTERVAL) * (position)
-
-CONST CHAR g_OPERATIONS[] = "+-*/";
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
@@ -95,6 +72,8 @@ INT WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInst, LPSTR lpCmdLine, IN
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	static int skinID = 0;
+
 	switch (uMsg)
 	{
 	case WM_CREATE:
@@ -120,17 +99,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		(
 			g_i_FONT_HEIGHT, g_i_FONT_WIDTH,
 			0, 0,
-			FW_BOLD,
-			FALSE,
-			FALSE,
-			FALSE,
+			FW_BOLD, //Bold
+			FALSE, //Italic
+			FALSE, //Underline
+			FALSE, //strikeout
 			DEFAULT_CHARSET,
 			OUT_TT_PRECIS,
 			CLIP_TT_ALWAYS,
 			ANTIALIASED_QUALITY,
 			FF_DONTCARE,
 			"Digital-7"
-
 		);
 
 		SendMessage(hEdit, WM_SETFONT, (WPARAM)hFont, TRUE);
@@ -182,8 +160,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			(HMENU)IDC_BUTTON_POINT,
 			GetModuleHandle(NULL),
 			NULL
-		);
-		
+		);		
 
 		CHAR sz_operation[2] = "";
 		for (int i = 0; i < 4; i++)
@@ -243,14 +220,16 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 		HDC hdc = (HDC)wParam; //с сообщением WM_CTLCOLOREDIT в wParam принимается HWND элемента EditControl
 		SetBkMode(hdc, TRANSPARENT);
-		SetBkColor(hdc, RGB(0, 0, 100));
-		HBRUSH hBrush = CreateSolidBrush(RGB(0, 0, 150));
-		SetTextColor(hdc, RGB(255, 0, 0));
+		SetBkColor(hdc, g_clr_COLORS[skinID][g_i_DISPLAY_COLOR]);
+		HBRUSH hBrush = CreateSolidBrush(g_clr_COLORS[skinID][g_i_WINDOW_COLOR]);
+
+		SetTextColor(hdc, g_clr_COLORS[skinID][g_i_FONT_COLOR]);
 		SetClassLongPtr(hwnd, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush);
 		SendMessage(hwnd, WM_ERASEBKGND, wParam, 0);
-		return (LRESULT)hBrush;
+		DeleteObject(hBrush);
+		//return (LRESULT)hBrush;
 	}
-
+	break;
 	case WM_COMMAND:
 	{
 		static DOUBLE a = DBL_MIN, b = DBL_MIN;	//Операнды
@@ -471,7 +450,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			MF_STRING,
 			IDM_METAL_MISTRAL,
 			"Metal Mistral"
-		);		
+		);
+		AppendMenu
+		(
+			cmMain,
+			MF_SEPARATOR,
+			NULL,
+			NULL
+		);
 		AppendMenu
 		(
 			cmMain,
@@ -482,7 +468,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		BOOL selected_item = TrackPopupMenuEx
 		(
 			cmMain,
-			TPM_TOPALIGN | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+			TPM_RIGHTALIGN | TPM_BOTTOMALIGN | TPM_RETURNCMD | TPM_RIGHTBUTTON | TPM_VERNEGANIMATION,
 			LOWORD(lParam),HIWORD(lParam),
 			hwnd,
 			NULL
@@ -490,18 +476,18 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 		switch (selected_item)
 		{
-			
 
-		case IDM_SQUARE_BLUE: 
-			SetSkin(hwnd, "square_blue");
+		case IDM_SQUARE_BLUE: 	 skinID = 0; 	break;
 			//HBRUSH greenBrush = CreateSolidBrush(RGB(0, 255, 0));
 			//hBrush = appCreateColor(appChooseColor(hцnd, g_clrBkg));
 			//wClass.hbrBackground = = CreateSolidBrush(0x000000FF);
-			break;
-		case IDM_METAL_MISTRAL: SetSkin(hwnd, "metal_mistral"); break;
+
+		case IDM_METAL_MISTRAL: skinID = 1; break;
 		case IDM_EXIT: SendMessage(hwnd, WM_CLOSE, 0, 0); break;
 		}
-		
+
+		InvalidateRect(hwnd, 0, TRUE);
+		SetSkin(hwnd, g_sz_SKIN[skinID]);			
 		DestroyMenu(cmMain);
 	}
 	break;
