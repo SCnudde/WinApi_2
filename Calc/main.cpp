@@ -1,4 +1,4 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿﻿#define _CRT_SECURE_NO_WARNINGS
 #include<Windows.h>
 #include<iostream>
 #include"resource.h"
@@ -81,7 +81,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	{
 
 		//AllocConsole();//открывает консоль
-		freopen("CONOUT$", "w", stdout);// Чтоб cout работал
+		//freopen("CONOUT$", "w", stdout);// Чтоб cout работал
 		HWND hEdit = CreateWindowEx
 		(
 			NULL,
